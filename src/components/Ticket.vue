@@ -57,8 +57,9 @@
               <span>Условия тарифа</span>
             </div>
             <div class="ticket__info-luggage">
-              <img src="../assets/group.png" />
-              <span>невозвратный</span>
+              <img v-if="!ticket.refundable" src="../assets/group.png" />
+              <span>{{ticket.refundable ? 'возвратный' : 'невозвратный'}}</span>
+                
             </div>
           </div>
         </div>
@@ -67,7 +68,7 @@
           <button>Выбрать</button>
           <p>Цена за всех пассажиров</p>
           <div class="ticket__price-details">
-            <p>Нет багажа</p>
+            <p>{{baggageOption(ticket)}}</p>
             <span>+ Добавить багаж</span>
           </div>
         </div>
@@ -139,6 +140,15 @@ export default {
     },
     icon: function(carrier) {
         return `https://aviata.kz/static/airline-logos/80x80/${carrier}.png`;
+    },
+    baggageOption: function(baggage) {
+        let str = '';
+        if(baggage.segments[0].baggage_options[0].value === 0){
+            str = 'нет багажа';
+        }else{
+            str = `${baggage.segments[0].baggage_options[0].value} ${baggage.segments[0].baggage_options[0].unit}`
+        }
+        return str;
     }
   }
 };
@@ -195,6 +205,7 @@ h4 {
 .ticket__carrier-info {
   display: flex;
   width: 8rem;
+  align-items: center;
 }
 .ticket__carrier-name {
   font-weight: 600;
@@ -318,5 +329,13 @@ h4 {
   border-radius: 2px;
   padding: 3px 5px;
   cursor: pointer;
+}
+.ticket__carrier-logo{
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+.ticket__carrier-logo img{
+    width: 100%;
 }
 </style>

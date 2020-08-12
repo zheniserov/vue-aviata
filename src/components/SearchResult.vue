@@ -27,6 +27,7 @@ import Results from "@/results.json";
 export default {
   computed: {
     filterOpt() {
+
       const map = [];
       this.carriers.forEach(e => {
         if (e.status) {
@@ -34,24 +35,18 @@ export default {
         }
       });
 
-      const refund = [];
+      let isStopped = false;
+      let isLuggaged = false;
+      let isRefund = false;
       this.options.forEach(e => {
-        if (e.status) {
-          refund[e.status] = e;
+        if (!isStopped) {
+          isStopped = e.status && e.id == 1;
         }
-      });
-
-      const luggage = [];
-      this.options.forEach(e => {
-        if (e.status) {
-          luggage[e.value] = e;
+        if (!isLuggaged) {
+          isLuggaged = e.status && e.id == 2;
         }
-      });
-
-      const stops = [];
-      this.options.forEach(e => {
-        if (e.status) {
-          stops[e.status] = e;
+        if (!isRefund) {
+          isRefund = e.status && e.id == 3;
         }
       });
 
@@ -61,28 +56,28 @@ export default {
           return map[e.validating_carrier];
         });
       }
-      if (Object.keys(refund).length) {
-        result = this.results.filter(e => {
-          return refund[e.refundable];
+
+      result = result
+        .filter(e => {
+          return !isStopped || !e.itineraries[0][0].stops;
+        })
+        .filter(e => {
+          return (
+            !isLuggaged ||
+            e.itineraries[0][0].segments[0].baggage_options[0].value > 0
+          );
+        })
+        .filter(e => {
+          return !isRefund || e.refundable;
         });
-      }
-      // console.log(Object.keys(stops).length)
-      // if (Object.keys(stops).length) {
-      //   result = this.results.filter(e => {
-      //     console.log( e.itineraries.forEach(item => {
-      //       return stops[item[0].stops > 0];
-      //     }))
-      //   });
-      // }
-      // console.log(result);
+
       return result;
     }
-
   },
   methods: {
-    carriersFilter(id) {
+    carriersFilter(carrier) {
       return this.carriers.map(item => {
-        if (item.carrier === id) {
+        if (item.carrier === carrier) {
           item.status = !item.status;
         }
       });
@@ -102,29 +97,28 @@ export default {
   data() {
     return {
       options: [
-        { id: 1, title: "Только прямые", value: 0, status: false },
-        { id: 2, title: "Только с багажом", value: '0PC', status: false },
+        { id: 1, title: "Только прямые", value: 1, status: false },
+        { id: 2, title: "Только с багажом", value: "0PC", status: false },
         { id: 3, title: "Только возвратные", code: "refundable", status: false }
       ],
       carriers: [
-        { id: 1, title: "Все", carrier: "all", status: true },
-        { id: 2, title: "Air Astana", carrier: "KC", status: true },
-        { id: 3, title: "Uzbekistan Airways", carrier: "HY", status: true },
-        { id: 4, title: "Emirates", carrier: "EK", status: true },
-        { id: 5, title: "HR", carrier: "HR", status: true },
-        { id: 6, title: "Flydubai", carrier: "FZ", status: true },
-        { id: 7, title: "S7 Airlines", carrier: "S7", status: true },
-        { id: 8, title: "Air Baltic", carrier: "BT", status: true },
+        { id: 1, title: "Air Astana", carrier: "KC", status: true },
+        { id: 2, title: "Uzbekistan Airways", carrier: "HY", status: true },
+        { id: 3, title: "Emirates", carrier: "EK", status: true },
+        { id: 4, title: "HR", carrier: "HR", status: true },
+        { id: 5, title: "Flydubai", carrier: "FZ", status: true },
+        { id: 6, title: "S7 Airlines", carrier: "S7", status: true },
+        { id: 7, title: "Air Baltic", carrier: "BT", status: true },
         {
-          id: 9,
+          id: 8,
           title: "China Southern Airlines",
           carrier: "CZ",
           status: true
         },
-        { id: 10, title: "Aeroflot", carrier: "SU", status: true },
-        { id: 11, title: "Belavia", carrier: "B2", status: true },
-        { id: 12, title: "SCAT Airlines", carrier: "DV", status: true },
-        { id: 13, title: "Turkish Airlines", carrier: "TK", status: true }
+        { id: 9, title: "Aeroflot", carrier: "SU", status: true },
+        { id: 10, title: "Belavia", carrier: "B2", status: true },
+        { id: 11, title: "SCAT Airlines", carrier: "DV", status: true },
+        { id: 12, title: "Turkish Airlines", carrier: "TK", status: true }
       ],
       results: Results.flights
     };
